@@ -10,7 +10,7 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
 
-api_key = os.environ.get('API_KEY')
+env_api_key = os.environ.get('API_KEY')
 
 app = FastAPI()
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
@@ -18,7 +18,7 @@ oauth2_scheme = OAuth2()
 
 
 def get_api_key(api_key_header: str = Security(api_key_header),) -> str:
-    if api_key_header in api_key:
+    if api_key_header in env_api_key:
         return api_key_header
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -34,18 +34,18 @@ chat_gpt = AsyncOpenAI(
 
 
 class ChatGpt(BaseModel):
-    message: list
+    messages: list
 
 
 @app.post("/chatgpt")
-async def ask_chatgpt(item: ChatGpt, api_key: str = Security(get_api_key)):
-    if api_key not in api_key:
+async def ask_chatgpt(item: ChatGpt, header_api_key: str = Security(get_api_key)):
+    if header_api_key != env_api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Forbidden"
         )
     gpt_response = await chat_gpt.chat.completions.create(
         model="gpt-4",
-        messages=item.message
+        messages=item.messages
     )
     return gpt_response
