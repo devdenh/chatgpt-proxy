@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, Security
+import os
+
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Security
 from fastapi.security import OAuth2, APIKeyHeader
 from openai import AsyncOpenAI
 from pydantic import BaseModel
-import os
-from dotenv import load_dotenv
 from starlette import status
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -35,6 +36,11 @@ chat_gpt = AsyncOpenAI(
 
 class ChatGpt(BaseModel):
     messages: list
+
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
 
 @app.post("/chatgpt")
