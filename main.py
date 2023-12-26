@@ -1,4 +1,5 @@
 import os
+from typing import List, Dict, Optional
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Security
@@ -34,8 +35,9 @@ chat_gpt = AsyncOpenAI(
 )
 
 
-class ChatGpt(BaseModel):
-    messages: list
+class ChatGptWithTools(BaseModel):
+    messages: List
+    tools: Optional[List[dict]] = None  # Добавляем поле tools для передачи параметров функции
 
 
 @app.get("/")
@@ -43,15 +45,25 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.post("/chatgpt")
-async def ask_chatgpt(item: ChatGpt, header_api_key: str = Security(get_api_key)):
+@app.post("/chatgpt_with_tools")
+async def ask_chatgpt_with_tools(item: ChatGptWithTools, header_api_key: str = Security(get_api_key)):
     if header_api_key != env_api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Forbidden"
         )
-    gpt_response = await chat_gpt.chat.completions.create(
-        model="gpt-4",
-        messages=item.messages
-    )
+
+    kwargs = {
+        "model": "gpt-4",
+        "messages": item.messages
+    }
+    if item.tools:
+        kwargs = {
+            "model": "gpt-4",
+            "messages": item.messages,
+            "tools": item.tools
+        }
+    # Вызываем функцию с использованием tools
+    gpt_response = await chat_gpt.chat.completions.create(**kwargs)
+
     return gpt_response
