@@ -20,12 +20,12 @@ oauth2_scheme = OAuth2()
 
 
 def get_api_key(api_key_header: str = Security(api_key_header),) -> str:
-    if api_key_header in env_api_key:
-        return api_key_header
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid or missing API Key",
-    )
+    if not env_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing API Key",
+        )
+    return api_key_header
 
 
 openai_api_key = os.environ.get('OPENAI_API_KEY')
