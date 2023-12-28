@@ -46,7 +46,7 @@ def read_root():
 
 
 @app.post("/chatgpt_with_tools")
-async def ask_chatgpt_with_tools(item: ChatGptWithTools, header_api_key: str = Security(get_api_key)):
+def ask_chatgpt_with_tools(item: ChatGptWithTools, header_api_key: str = Security(get_api_key)):
     if header_api_key != env_api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -64,6 +64,6 @@ async def ask_chatgpt_with_tools(item: ChatGptWithTools, header_api_key: str = S
             "tools": item.tools
         }
     # Вызываем функцию с использованием tools
-    gpt_response = await chat_gpt.chat.completions.create(**kwargs)
+    gpt_response = chat_gpt.chat.completions.create(**kwargs)
 
     return gpt_response
